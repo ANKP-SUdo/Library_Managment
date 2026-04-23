@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == "admin@gmail.com";
+    }
+
+    function isOwner() {
+      return signedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    function isCreatingOwnProfile(userId) {
+      return signedIn()
+        && userId == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.Email == request.auth.token.email
+        && request.resource.data.Roll_Number == userId;
+    }
+
+    match /books/{bookId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow create: if isCreatingOwnProfile(userId);
+      allow read: if isAdmin() || isOwner();
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

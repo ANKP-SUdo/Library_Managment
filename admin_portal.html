@@ -5,8 +5,6 @@
     <link rel="stylesheet" href="css/admin_portal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script type="text/javascript" src="js/admin_portal.js">
-    </script>
     <title>Library Management System</title>
   </head>
   <body>
@@ -38,15 +36,15 @@
     <!-- search -->
 
     <form class="Search" id="Students_search">
-      <input type="text" id="search-bar" placeholder="Search Students">
-      <a href="#"><img class="search-icon" src="http://www.endlessicons.com/wp-content/uploads/2012/12/search-icon.png"></a>
-      <button id="show_students">Show all Students</button>
+      <input type="text" id="student-search-bar" placeholder="Search Students">
+      <a href="#"><img class="search-icon" src="https://www.endlessicons.com/wp-content/uploads/2012/12/search-icon.png"></a>
+      <button type="submit" id="show_students">Show all Students</button>
     </form>
 
     <form class="Search" id="Books_search">
-      <input type="text" id="search-bar" placeholder="Search Books">
-      <a href="#"><img class="search-icon" src="http://www.endlessicons.com/wp-content/uploads/2012/12/search-icon.png"></a>
-      <button id="show_books">Show all Books</button>
+      <input type="text" id="book-search-bar" placeholder="Search Books">
+      <a href="#"><img class="search-icon" src="https://www.endlessicons.com/wp-content/uploads/2012/12/search-icon.png"></a>
+      <button type="submit" id="show_books">Show all Books</button>
     </form>
 
 
@@ -68,7 +66,9 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-app.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/6.0.2/firebase-firestore.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/6.0.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/admin_portal.js"></script>
   </body>
 </html>

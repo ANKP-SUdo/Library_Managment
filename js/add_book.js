@@ -1,48 +1,47 @@
+const ADMIN_EMAIL = "admin@gmail.com";
+
 $(document).ready(function() {
-    
-    
-    var db = firebase.firestore();
-    
     $("#book-form").submit(function(e) {
         e.preventDefault();
+        addThis();
     });
 
-    $('#submit').click(function() {
-      add_this();
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (!user || user.email !== ADMIN_EMAIL) {
+            window.location = "admin_login.html";
+        }
     });
-
-    firebase.auth().onAuthStateChanged(user => {
-        if(!user) {
-            window.location = 'index.html';
-            }
-    });
-
 });
 
-function add_this()
-{
-    var BookCode = document.getElementById("book_code").value;
-    var BookName = document.getElementById("book_name").value;
-    var Author1 = document.getElementById("author1").value;
-    var Author2 = document.getElementById("author2").value;
-    var Subject = document.getElementById("Subject").value;
-    var tags = document.getElementById("tags").value;
+function addThis() {
+    var bookCode = document.getElementById("book_code").value.trim();
+    var bookName = document.getElementById("book_name").value.trim();
+    var author1 = document.getElementById("author1").value.trim();
+    var author2 = document.getElementById("author2").value.trim();
+    var subject = document.getElementById("Subject").value.trim();
+    var tags = document.getElementById("tags").value.trim();
     var db = firebase.firestore();
- 
-    db.collection("books").doc(BookCode).set({
-        bookcode: BookCode,
-        bookname : BookName,
-        author1: Author1,
-        author2: Author2,
-        subject : Subject,
-        tags : tags
+
+    if (!bookCode || !bookName || !author1 || !subject) {
+        window.alert("Please fill in all required book details.");
+        return;
+    }
+
+    db.collection("books").doc(bookCode).set({
+        bookcode: bookCode,
+        bookname: bookName,
+        author1: author1,
+        author2: author2,
+        subject: subject,
+        tags: tags,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
-    .then(function() {
-        console.log("Document successfully written!");
-        window.alert("Successfully Book Added");
-        window.location = 'admin_portal.html';
-    })
-    .catch(function(error) {
-        console.error("Error writing document: ", error);
-    });
+        .then(function() {
+            window.alert("Book added successfully.");
+            window.location = "admin_portal.html";
+        })
+        .catch(function(error) {
+            console.error("Error writing document:", error);
+            window.alert(error.message);
+        });
 }

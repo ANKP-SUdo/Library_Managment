@@ -1,50 +1,39 @@
-//admin@123
+const ADMIN_EMAIL = "admin@gmail.com";
 
-$(document).ready(function(){    
-   
-    var db = firebase.firestore();
-
-    $("#login-form").submit(function(e) {
+$(document).ready(function() {
+    $(".login-form").submit(function(e) {
         e.preventDefault();
+        login();
     });
 
-    $('#submit_data').click(function() {
-      login();
-    });
-
-    $('#back_button').click(function()
-    {
+    $("#back_button").click(function() {
         logout();
     });
 
-    firebase.auth().onAuthStateChanged(user => {
-        if(user) {
-            window.location = 'admin_portal.html'; //After successful login, user will be redirected to home.html     
-            }
-        });
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user && user.email === ADMIN_EMAIL) {
+            window.location = "admin_portal.html";
+        }
+    });
+});
 
-  });
-  
-function login(){
-    var email = document.getElementById("username").value;
+function login() {
+    var email = document.getElementById("username").value.trim();
     var password = document.getElementById("password").value;
 
-    if(email === "admin@gmail.com")
-    {
-        firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            window.alert(errorMessage);
-        });
+    if (email !== ADMIN_EMAIL) {
+        window.alert("Only the admin account can sign in here.");
+        return;
     }
-    
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .catch(function(error) {
+            window.alert(error.message);
+        });
 }
-function logout()
-{
-    firebase.auth().signOut().then(function() {
-    // Sign-out successful.
-    }).catch(function(error) {
-    // An error happened.
+
+function logout() {
+    firebase.auth().signOut().catch(function(error) {
+        console.log("Sign out failed:", error);
     });
 }

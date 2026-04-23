@@ -1,99 +1,85 @@
+const ADMIN_EMAIL = "admin@gmail.com";
 
 $(document).ready(function() {
-
-    // web app's Firebase configuration
-    
-    var db = firebase.firestore();
-    
-    //prevent default refresh of form 
-    $("#login-form").submit(function(e) {
+    $(".login-form").submit(function(e) {
         e.preventDefault();
+        login();
     });
 
-    $("#register-form").submit(function(e) {
+    $(".register-form").submit(function(e) {
         e.preventDefault();
+        registerMe();
     });
 
-
-    //if user is logged in then go to user_portal
-    firebase.auth().onAuthStateChanged(user => {
-        if(user) {
-            window.location = 'user_portal.html';
-            }
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user && user.email !== ADMIN_EMAIL) {
+            window.location = "user_portal.html";
+        }
     });
-    
-    $('#log_me_in').click(function() {
-      login();
-    });
-
-    $('#register_new').click(function() {
-      register_me();
-    });
-
-    $('#log_button').click(function()
-    {
-        logout();
-    });
-
 
 });
 
-function logout()
-{
-    firebase.auth().signOut().then(function() {
-        console.log("logout done");
-        window.location = 'usr_login.html';
-    }).catch(function(error) {
-        console.log("error");
-    });
-}
-
-function register_me(){
-    //get input data
+function registerMe() {
     var db = firebase.firestore();
+    var name = document.getElementById("usr_name").value.trim();
+    var password = document.getElementById("usr_pass").value;
+    var email = document.getElementById("usr_email").value.trim();
+    var rollNumber = document.getElementById("usr_roll").value.trim();
+    var dateOfBirth = document.getElementById("usr_dob").value;
 
-    var name = document.getElementById("usr_name").value;
-    var Password = document.getElementById("usr_pass").value;
-    var Email = document.getElementById("usr_email").value;
-    var Roll_number = document.getElementById("usr_roll").value;
-    var date_of_birth = document.getElementById("usr_dob").value;
-    var books = [];
+    if (!name || !password || !email || !rollNumber || !dateOfBirth) {
+        window.alert("Please complete all signup fields.");
+        return;
+    }
 
-    //firebase register
-    firebase.auth().createUserWithEmailAndPassword(Email, Password).catch(function(error) {
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        window.alert("error ", errorMessage);
-    });
-
-    db.collection("users").doc(Roll_number).set({
-        name: name,
-        Email: Email,
-        Roll_Number: Roll_number,
-        DOB: date_of_birth,
-        books: books
-    })
-    .then(function() {
-        console.log("Document successfully written!");
-    })
-    .catch(function(error) {
-        console.error("Error writing document: ", error);
-    });
-
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(function(result) {
+            var createdUser = result.user;
+            return db.collection("users").doc(createdUser.uid).set({
+                uid: createdUser.uid,
+                name: name,
+                Email: email,
+                Roll_Number: rollNumber,
+                DOB: dateOfBirth,
+                books: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(function(error) {
+                return createdUser.delete().catch(function(deleteError) {
+                    console.log("Rollback failed:", deleteError);
+                }).then(function() {
+                    throw error;
+                });
+            });
+        })
+        .then(function() {
+            window.alert("Account created successfully.");
+            window.location = "user_portal.html";
+        })
+        .catch(function(error) {
+            window.alert(error.message);
+        });
 }
 
-function login(){
-    var email = document.getElementById("username").value;
+function login() {
+    var email = document.getElementById("username").value.trim();
     var password = document.getElementById("password").value;
 
-    if(email === "admin@gmail.com")
-    {
-        firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            window.alert(errorMessage);
+    if (!email || !password) {
+        window.alert("Enter your email and password.");
+        return;
+    }
+
+    if (email === ADMIN_EMAIL) {
+        window.alert("Use the admin login page for the admin account.");
+        return;
+    }
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(function() {
+            window.location = "user_portal.html";
+        })
+        .catch(function(error) {
+            window.alert(error.message);
         });
-    }    
 }
 

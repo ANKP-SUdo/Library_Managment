@@ -1,73 +1,106 @@
+const ADMIN_EMAIL = "admin@gmail.com";
+
 $(document).ready(function() {
-
-    
-    var db = firebase.firestore();
-    
-    
-    db.collection("books").get().then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
-            $('#books').append(
-                "<div><h2>"+doc.data().bookcode+"-" +doc.data().bookname+"</h2>"+
-                "<h3>"+doc.data().author1 + " , " +doc.data().author2 +"</h3>"+
-                "<h3>"+doc.data().subject+"</h3>"+
-                "<p>" + doc.data().tags + "</p>"+
-                "</div><hr>");
-        });
-    });
-
-
-    firebase.auth().onAuthStateChanged(user => {
-        if(user) {
-            db.collection("users").where("Email","==",user.email)
-            .get()
-            .then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    // doc.data() is never undefined for query doc snapshots
-                    console.log(doc.id, " => ", doc.data());
-                    var book = [];
-                    book = doc.data().books;
-                    books_set = "<ul>";
-                    for(var i=0;i<book.length;i++)
-                    {
-                        books_set = books_set +"<li>"+ book[i] + "</li>" ;
-                    }
-                    books_set = books_set + "</ul>";
-                    
-                    $('#about_me').append(
-                    "<div><h1>"+"Name :" +doc.data().name+"</h1>"+
-                    "<h2>"+"Roll Number : "+doc.data().Roll_Number+"</h2>"+
-                    "<h2>"+"Date of Birth : " + doc.data().DOB +"</h2>"+
-                    "<h2>"+"E-mail Id: " + doc.data().Email +"</h2><hr>"+
-                     " <h2> Books </h2>" +   
-                    books_set+
-                    "</div>");
-                });
-            })
-            .catch(function(error) {
-                console.log("Error getting documents: ", error);
-            });
-    
-        
-        }
-        });
-        firebase.auth().onAuthStateChanged(user => {
-            if(!user) {
-                window.location = 'index.html';
-            }
-        });
-    $('#log_button').click(function()
-    {
+    $("#log_button").click(function() {
         logout();
     });
 
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (!user || user.email === ADMIN_EMAIL) {
+            window.location = "usr_login.html";
+            return;
+        }
+
+        loadBooks();
+        loadProfile(user.uid);
+    });
 });
 
-function logout()
-{
-    firebase.auth().signOut().then(function() {
-        console.log("logout done");
-        window.location = 'admin_login.html';
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function loadBooks() {
+    var db = firebase.firestore();
+    var container = $("#books");
+
+    container.empty();
+
+    db.collection("books").get().then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+            var data = doc.data();
+            container.append(
+                "<div><h2>" + escapeHtml(data.bookcode) + " - " + escapeHtml(data.bookname) + "</h2>" +
+                "<h3>" + escapeHtml(data.author1) + (data.author2 ? " , " + escapeHtml(data.author2) : "") + "</h3>" +
+                "<h3>" + escapeHtml(data.subject) + "</h3>" +
+                "<p>" + escapeHtml(data.tags) + "</p>" +
+                "</div><hr>"
+            );
+        });
+
+        if (!container.children().length) {
+            container.append("<p>No books available right now.</p>");
+        }
     }).catch(function(error) {
-        console.log("error");
+        console.log("Error getting books:", error);
+        container.html("<p>Unable to load books right now.</p>");
+    });
+}
+
+function loadProfile(uid) {
+    var db = firebase.firestore();
+    var container = $("#about_me");
+
+    container.empty();
+
+    db.collection("users").where("uid", "==", uid)
+        .limit(1)
+        .get()
+        .then(function(querySnapshot) {
+            if (querySnapshot.empty) {
+                container.html("<p>User profile not found.</p>");
+                return;
+            }
+
+            var data = querySnapshot.docs[0].data();
+            var borrowedBooks = Array.isArray(data.books) ? data.books : [];
+            var booksSet = "<ul>";
+
+            if (borrowedBooks.length) {
+                for (var i = 0; i < borrowedBooks.length; i++) {
+                    booksSet += "<li>" + escapeHtml(borrowedBooks[i]) + "</li>";
+                }
+            } else {
+                booksSet += "<li>No books issued</li>";
+            }
+
+            booksSet += "</ul>";
+
+            container.append(
+                "<div><h1>Name : " + escapeHtml(data.name) + "</h1>" +
+                "<h2>Roll Number : " + escapeHtml(data.Roll_Number) + "</h2>" +
+                "<h2>Date of Birth : " + escapeHtml(data.DOB) + "</h2>" +
+                "<h2>E-mail Id: " + escapeHtml(data.Email) + "</h2><hr>" +
+                "<h2>Books</h2>" +
+                booksSet +
+                "</div>"
+            );
+        })
+        .catch(function(error) {
+            console.log("Error getting profile:", error);
+            container.html("<p>Unable to load your profile right now.</p>");
+        });
+}
+
+function logout() {
+    firebase.auth().signOut().then(function() {
+        window.location = "usr_login.html";
+    }).catch(function(error) {
+        console.log("error", error);
     });
 }
