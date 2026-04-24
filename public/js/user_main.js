@@ -58,16 +58,15 @@ function loadProfile(uid) {
 
     container.empty();
 
-    db.collection("users").where("uid", "==", uid)
-        .limit(1)
+    db.collection("users").doc(uid)
         .get()
-        .then(function(querySnapshot) {
-            if (querySnapshot.empty) {
+        .then(function(doc) {
+            if (!doc.exists) {
                 container.html("<p>User profile not found.</p>");
                 return;
             }
 
-            var data = querySnapshot.docs[0].data();
+            var data = doc.data();
             var borrowedBooks = Array.isArray(data.books) ? data.books : [];
             var booksSet = "<ul>";
 

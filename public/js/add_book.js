@@ -13,6 +13,27 @@ $(document).ready(function() {
     });
 });
 
+function getFriendlyBookMessage(error, fallbackMessage) {
+    var errorMessages = {
+        "permission-denied": "You do not have permission to add books. Sign in with the admin account.",
+        "unauthenticated": "Sign in as the admin before adding books."
+    };
+
+    if (!error) {
+        return fallbackMessage;
+    }
+
+    if (error.code && errorMessages[error.code]) {
+        return errorMessages[error.code];
+    }
+
+    if (error.code) {
+        return fallbackMessage + " (" + error.code + ")";
+    }
+
+    return fallbackMessage;
+}
+
 function addThis() {
     var bookCode = document.getElementById("book_code").value.trim();
     var bookName = document.getElementById("book_name").value.trim();
@@ -37,11 +58,12 @@ function addThis() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
         .then(function() {
+            console.log("Book created successfully:", bookCode);
             window.alert("Book added successfully.");
             window.location = "admin_portal.html";
         })
         .catch(function(error) {
             console.error("Error writing document:", error);
-            window.alert(error.message);
+            window.alert(getFriendlyBookMessage(error, "Unable to add the book."));
         });
 }

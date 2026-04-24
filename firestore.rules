@@ -18,7 +18,10 @@ service cloud.firestore {
         && userId == request.auth.uid
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.Email == request.auth.token.email
-        && request.resource.data.Roll_Number == userId;
+        && request.resource.data.Roll_Number is string
+        && request.resource.data.name is string
+        && request.resource.data.DOB is string
+        && request.resource.data.books is list;
     }
 
     match /books/{bookId} {
