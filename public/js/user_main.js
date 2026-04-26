@@ -61,39 +61,51 @@ function loadProfile(uid) {
     db.collection("users").doc(uid)
         .get()
         .then(function(doc) {
-            if (!doc.exists) {
-                container.html("<p>User profile not found.</p>");
+            if (doc.exists) {
+                renderProfile(doc.data(), container);
                 return;
             }
 
-            var data = doc.data();
-            var borrowedBooks = Array.isArray(data.books) ? data.books : [];
-            var booksSet = "<ul>";
+            // Fallback for older records that may not use the auth UID as the document ID.
+            return db.collection("users").where("uid", "==", uid).limit(1).get()
+                .then(function(querySnapshot) {
+                    if (querySnapshot.empty) {
+                        container.html("<p>User profile not found.</p>");
+                        return;
+                    }
 
-            if (borrowedBooks.length) {
-                for (var i = 0; i < borrowedBooks.length; i++) {
-                    booksSet += "<li>" + escapeHtml(borrowedBooks[i]) + "</li>";
-                }
-            } else {
-                booksSet += "<li>No books issued</li>";
-            }
-
-            booksSet += "</ul>";
-
-            container.append(
-                "<div><h1>Name : " + escapeHtml(data.name) + "</h1>" +
-                "<h2>Roll Number : " + escapeHtml(data.Roll_Number) + "</h2>" +
-                "<h2>Date of Birth : " + escapeHtml(data.DOB) + "</h2>" +
-                "<h2>E-mail Id: " + escapeHtml(data.Email) + "</h2><hr>" +
-                "<h2>Books</h2>" +
-                booksSet +
-                "</div>"
-            );
+                    renderProfile(querySnapshot.docs[0].data(), container);
+                });
         })
         .catch(function(error) {
             console.log("Error getting profile:", error);
             container.html("<p>Unable to load your profile right now.</p>");
         });
+}
+
+function renderProfile(data, container) {
+    var borrowedBooks = Array.isArray(data.books) ? data.books : [];
+    var booksSet = "<ul>";
+
+    if (borrowedBooks.length) {
+        for (var i = 0; i < borrowedBooks.length; i++) {
+            booksSet += "<li>" + escapeHtml(borrowedBooks[i]) + "</li>";
+        }
+    } else {
+        booksSet += "<li>No books issued</li>";
+    }
+
+    booksSet += "</ul>";
+
+    container.append(
+        "<div><h1>Name : " + escapeHtml(data.name) + "</h1>" +
+        "<h2>Roll Number : " + escapeHtml(data.Roll_Number) + "</h2>" +
+        "<h2>Date of Birth : " + escapeHtml(data.DOB) + "</h2>" +
+        "<h2>E-mail Id: " + escapeHtml(data.Email) + "</h2><hr>" +
+        "<h2>Books</h2>" +
+        booksSet +
+        "</div>"
+    );
 }
 
 function logout() {

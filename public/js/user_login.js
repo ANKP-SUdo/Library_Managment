@@ -133,7 +133,8 @@ function registerMe() {
 }
 
 function login() {
-    var email = document.getElementById("username").value.trim();
+    var emailField = document.getElementById("Email") || document.getElementById("username");
+    var email = emailField ? emailField.value.trim() : "";
     var password = document.getElementById("password").value;
 
     if (!email || !password) {
