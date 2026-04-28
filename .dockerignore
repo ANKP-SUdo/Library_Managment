@@ -1,0 +1,9 @@
+.git
+.github
+.vscode
+node_modules
+firebase-debug.log
+server.err.log
+server.out.log
+*.log
+serve-local.js

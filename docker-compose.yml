@@ -1,0 +1,7 @@
+services:
+  library-management:
+    build: .
+    container_name: library-management
+    ports:
+      - "8080:80"
+    restart: unless-stopped
