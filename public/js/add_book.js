@@ -15,7 +15,7 @@ $(document).ready(function() {
 
 function getFriendlyBookMessage(error, fallbackMessage) {
     var errorMessages = {
-        "permission-denied": "You do not have permission to add books. Sign in with the admin account.",
+        "permission-denied": "You do not have permission to add books. Sign in with the admin account. ",
         "unauthenticated": "Sign in as the admin before adding books."
     };
 
@@ -44,7 +44,7 @@ function addThis() {
     var db = firebase.firestore();
 
     if (!bookCode || !bookName || !author1 || !subject) {
-        window.alert("Please fill in all required book details.");
+        window.alert("Please fill in all required book details.);
         return;
     }
 
